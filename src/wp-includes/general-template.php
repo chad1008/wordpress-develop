@@ -1460,24 +1460,45 @@ function the_archive_title( $before = '', $after = '' ) {
  * @return string Archive title.
  */
 function get_the_archive_title() {
-	if ( is_category() ) {
-		/* translators: Category archive title. 1: Category name */
-		$title = sprintf( __( 'Category: %s' ), single_cat_title( '', false ) );
-	} elseif ( is_tag() ) {
-		/* translators: Tag archive title. 1: Tag name */
-		$title = sprintf( __( 'Tag: %s' ), single_tag_title( '', false ) );
-	} elseif ( is_author() ) {
-		/* translators: Author archive title. 1: Author name */
-		$title = sprintf( __( 'Author: %s' ), '<span class="vcard">' . get_the_author() . '</span>' );
-	} elseif ( is_year() ) {
-		/* translators: Yearly archive title. 1: Year */
-		$title = sprintf( __( 'Year: %s' ), get_the_date( _x( 'Y', 'yearly archives date format' ) ) );
-	} elseif ( is_month() ) {
-		/* translators: Monthly archive title. 1: Month name and year */
-		$title = sprintf( __( 'Month: %s' ), get_the_date( _x( 'F Y', 'monthly archives date format' ) ) );
-	} elseif ( is_day() ) {
-		/* translators: Daily archive title. 1: Date */
-		$title = sprintf( __( 'Day: %s' ), get_the_date( _x( 'F j, Y', 'daily archives date format' ) ) );
+	if ( is_category() || is_tag() || is_author() || is_year() || is_month() || is_day() || is_post_type_archive() || ( is_tax() && ! is_tax( 'post_format') ) ) {
+		$title_classes = 'archive-title';
+		if ( is_category() ) {
+			/* translators: Category archive title. 1: Category name */
+			$type = __( 'Category: ' );
+			$name = single_cat_title( '', false );
+		} elseif ( is_tag() ) {
+			/* translators: Tag archive title. 1: Tag name */
+			$type = __( 'Tag: ' );
+			$name = single_tag_title( '', false );
+		} elseif ( is_author() ) {
+			/* translators: Author archive title. 1: Author name */
+			$type = __( 'Author: ' );
+			$name = get_the_author();
+			$title_classes .= ' vcard';
+		} elseif ( is_year() ) {
+			/* translators: Yearly archive title. 1: Year */
+			$type = __( 'Year: ' );
+			$name = get_the_date( _x( 'Y', 'yearly archives date format' ) );
+		} elseif ( is_month() ) {
+			/* translators: Monthly archive title. 1: Month name and year */
+			$type = __( 'Month: ' );
+			$name = get_the_date( _x( 'F Y', 'monthly archives date format' ) );
+		} elseif ( is_day() ) {
+			/* translators: Daily archive title. 1: Date */
+			$type =__( 'Day: ' );
+			$name = get_the_date( _x( 'F j, Y', 'daily archives date format' ) );
+		} elseif ( is_post_type_archive() ) {
+			/* translators: Post type archive title. 1: Post type name */
+			$type = __( 'Archives: ' );
+			$name = post_type_archive_title( '', false );
+		} elseif ( is_tax() ) {
+			$tax = get_taxonomy( get_queried_object()->taxonomy );
+			/* translators: Taxonomy term archive title. 1: Taxonomy singular name */
+			$type = sprintf( __( '%s: ' ), $tax->labels->singular_name );
+			$name =  single_term_title( '', false );
+		}
+		$format ='<span class="archive-label">%s</span><span class="%s">%s</span>';
+		$title = sprintf( $format, $type, $title_classes, $name );
 	} elseif ( is_tax( 'post_format' ) ) {
 		if ( is_tax( 'post_format', 'post-format-aside' ) ) {
 			$title = _x( 'Asides', 'post format archive title' );
@@ -1498,13 +1519,6 @@ function get_the_archive_title() {
 		} elseif ( is_tax( 'post_format', 'post-format-chat' ) ) {
 			$title = _x( 'Chats', 'post format archive title' );
 		}
-	} elseif ( is_post_type_archive() ) {
-		/* translators: Post type archive title. 1: Post type name */
-		$title = sprintf( __( 'Archives: %s' ), post_type_archive_title( '', false ) );
-	} elseif ( is_tax() ) {
-		$tax = get_taxonomy( get_queried_object()->taxonomy );
-		/* translators: Taxonomy term archive title. 1: Taxonomy singular name, 2: Current taxonomy term */
-		$title = sprintf( __( '%1$s: %2$s' ), $tax->labels->singular_name, single_term_title( '', false ) );
 	} else {
 		$title = __( 'Archives' );
 	}
@@ -1518,7 +1532,6 @@ function get_the_archive_title() {
 	 */
 	return apply_filters( 'get_the_archive_title', $title );
 }
-
 /**
  * Display category, tag, term, or author description.
  *
